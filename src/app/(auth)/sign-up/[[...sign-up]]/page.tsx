@@ -1,4 +1,10 @@
 import { SignUp } from '@clerk/nextjs'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Cait | Sign Up',
+  description: 'the black cat artificial intelligence ',
+}
 
 export default function Page() {
   return (
