@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import logo from '../../public/logo.png'
+import logo from '../../public/logo.jpeg'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { auth } from '@clerk/nextjs'
