@@ -1,3 +1,4 @@
+
 import db from '@/lib/db'
 import { getEmbedding } from '@/lib/openai'
 import { notesIndex } from '@/lib/pinecone'
@@ -72,15 +73,27 @@ export async function PUT(req: Request) {
     if (!userId || note.userId !== userId) {
       return new Response('Unauthorized', { status: 401 })
     }
+    const emebedding = await getEmbeddingForNote(title, content)
 
-    const updatedNote = await db.note.update({
-      where: { id },
-      data: {
-        title,
-        content,
-      },
+    const updateNote = await db.$transaction(async (tx) => {
+      const note = await tx.note.update({
+        where: { id },
+        data: {
+          title,
+          content,
+        },
+      })
+      await notesIndex.upsert([
+        {
+          id: note.id,
+          values: emebedding,
+          metadata: { userId },
+        },
+      ])
+      return note
     })
-    return Response.json(updatedNote, { status: 200 })
+    
+    return Response.json({updateNote}, { status: 200 })
   } catch (error) {
     console.log(error)
     return new Response('Internal Server Error', { status: 500 })
@@ -107,8 +120,9 @@ export async function DELETE(req: Request) {
     if (!userId || note.userId !== userId) {
       return new Response('Unauthorized', { status: 401 })
     }
-    await db.note.delete({
-      where: { id },
+    await db.$transaction(async (tx) => {
+      await tx.note.delete({ where: { id } })
+      await notesIndex.deleteOne( id)
     })
     return Response.json({ message: 'note deleted' }, { status: 200 })
   } catch (error) {

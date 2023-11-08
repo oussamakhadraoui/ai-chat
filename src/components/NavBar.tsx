@@ -10,6 +10,7 @@ import AddNoteDialog from './AddNoteDialog'
 import ThemeToggleButton from './ThemeToggleButton'
 import {dark} from '@clerk/themes'
 import { useTheme } from 'next-themes'
+import AiChatButton from './AiChatButton'
 interface NavBarProps {}
 
 const NavBar = ({}: NavBarProps) => {
@@ -38,6 +39,7 @@ const NavBar = ({}: NavBarProps) => {
               <Plus size={20} className='mr-2p' />
               Add Note
             </Button>
+            <AiChatButton/>
           </div>
         </div>
       </div>
