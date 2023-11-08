@@ -7,9 +7,14 @@ import { UserButton } from '@clerk/nextjs'
 import { Button } from './ui/button'
 import {Plus} from 'lucide-react'
 import AddNoteDialog from './AddNoteDialog'
+import ThemeToggleButton from './ThemeToggleButton'
+import {dark} from '@clerk/themes'
+import { useTheme } from 'next-themes'
 interface NavBarProps {}
 
 const NavBar = ({}: NavBarProps) => {
+
+  const {theme}= useTheme()
   const [showAddNoteDialog,setShowNoteDialog]= useState<boolean>(false)
   return (
     <>
@@ -23,10 +28,12 @@ const NavBar = ({}: NavBarProps) => {
             <UserButton
               afterSignOutUrl='/'
               appearance={{
+                baseTheme:theme==="dark"?dark :undefined,
                 variables: { colorPrimary: '#0F172A' },
                 elements: { avatarBox: { width: '2.5rem', height: '2.5rem' } },
               }}
             />
+            <ThemeToggleButton/>
             <Button onClick={()=>setShowNoteDialog(true)}>
               <Plus size={20} className='mr-2p' />
               Add Note

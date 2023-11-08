@@ -1,4 +1,6 @@
 import db from '@/lib/db'
+import { getEmbedding } from '@/lib/openai'
+import { notesIndex } from '@/lib/pinecone'
 import {
   createNoteSchema,
   deleteNoteSchema,
@@ -23,14 +25,26 @@ export async function POST(req: Request) {
     if (!userId) {
       return new Response('Unauthorized', { status: 401 })
     }
-    console.log('ok')
-    const note = await db.note.create({
-      data: {
-        title,
-        content,
-        userId,
-      },
+
+    const emebedding = await getEmbeddingForNote(title, content)
+    const note = await db.$transaction(async (tx) => {
+      const note = await tx.note.create({
+        data: {
+          title,
+          content,
+          userId,
+        },
+      })
+      await notesIndex.upsert([
+        {
+          id: note.id,
+          values: emebedding,
+          metadata: { userId },
+        },
+      ])
+      return note
     })
+
     return Response.json(note, { status: 201 })
   } catch (error) {
     console.log(error)
@@ -96,9 +110,13 @@ export async function DELETE(req: Request) {
     await db.note.delete({
       where: { id },
     })
-    return Response.json({message:"note deleted"}, { status: 204 })
+    return Response.json({ message: 'note deleted' }, { status: 200 })
   } catch (error) {
     console.log(error)
     return new Response('Internal Server Error', { status: 500 })
   }
+}
+
+async function getEmbeddingForNote(title: string, content: string | undefined) {
+  return getEmbedding(title + '\n\n' + content ?? '')
 }
